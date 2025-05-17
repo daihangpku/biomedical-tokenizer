@@ -1,0 +1,11 @@
+transformers
+torch
+datasets
+tokenizers
+scikit-learn
+pandas
+numpy
+yaml
+tqdm
+matplotlib
+fastparquet

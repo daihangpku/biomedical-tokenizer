@@ -50,12 +50,23 @@ def wordpiece(training_corpus, vocab_size):
         return tokens
 
     def get_stats():
-        """Return pair-frequency map of current segmentation."""
-        pairs = defaultdict(int)
+        
+        pairs = defaultdict(float)
+        token_freqs = defaultdict(int)
+
+        # 统计每个 token 的频率
+        for word, freq in word_freqs.items():
+            tokens = tokenize_word(word)
+            for token in tokens:
+                token_freqs[token] += freq
+
         for word, freq in word_freqs.items():
             tokens = tokenize_word(word)
             for a, b in zip(tokens, tokens[1:]):
-                pairs[(a, b)] += freq
+
+                if token_freqs[a] > 0 and token_freqs[b] > 0:
+                    pairs[(a, b)] += freq / (token_freqs[a] * token_freqs[b])
+
         return pairs
 
     def merge_pair(best_pair):
@@ -74,8 +85,7 @@ def wordpiece(training_corpus, vocab_size):
             break
         best = max(stats, key=stats.get)
         merge_pair(best)
-    #     pbar.update(1)
-    # pbar.close()
+   
     #======
     # Do NOT add your below this line.
 

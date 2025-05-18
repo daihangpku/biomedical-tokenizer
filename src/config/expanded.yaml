@@ -1,0 +1,28 @@
+mode: "expanded"
+paths:
+  pubmed_corpus: "data/pubmed_sampled_corpus.jsonline"
+  full_token: "data/full_token.json"
+  extracted_token: "data/extracted_token.json"
+  hoc_train_dataset: "data/HoC/train.parquet"
+  hoc_test_dataset: "data/HoC/test.parquet"
+  tokenizer_model: "src/tokenizer/tokenizer_model"
+  bert_model: "bert-base-uncased"
+  
+tokenizer:
+  vocab_coarse_size: 50000
+  vocab_size: 5000
+  min_frequency: 2
+  special_tokens: ["[UNK]", "[CLS]", "[SEP]", "[PAD]", "[MASK]"]
+
+training:
+  batch_size: 8
+  learning_rate: 1e-5
+  num_epochs: 50
+  max_seq_length: 128
+  test_epoch: 5
+  save_epoch: 10
+  model_saving_dir: "src/model/ckpt/expended"
+  log_dir: "logs/expended"
+
+evaluation:
+  model_dir: "src/model/ckpt/expended/20.pt"

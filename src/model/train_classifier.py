@@ -22,12 +22,13 @@ def train_classifier(config, model, train_dataset, test_dataset=None):
 
 
     train_losses = []
-    test_metrics = {"accuracy": [], "precision": [], "recall": [], "f1": []}
-    model.train()
+    test_metrics = {"Accuracy": [], "Macro F1": [], "Micro F1": []}
+    
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     optimizer = AdamW(model.parameters(), lr=lr)
 
     for epoch in range(epochs):
+        model.train()
         total_loss = 0
         for batch in tqdm(train_loader, desc=f"Epoch {epoch + 1}/{epochs}", unit="batch"):
             optimizer.zero_grad()
@@ -44,15 +45,13 @@ def train_classifier(config, model, train_dataset, test_dataset=None):
         print(f"Epoch {epoch + 1}, Train_Loss: {avg_loss:.4f}")
         if test_dataset and (epoch + 1) % test_epoch == 0:
             preds, labels = evaluate_model(model, test_dataset, config)
-            accuracy, precision, recall, f1 = calculate_metrics(preds, labels)
-            test_metrics["accuracy"].append(accuracy)
-            test_metrics["precision"].append(precision)
-            test_metrics["recall"].append(recall)
-            test_metrics["f1"].append(f1)
+            accuracy, macro_f1, micro_f1 = calculate_metrics(preds, labels)
+            test_metrics["Accuracy"].append(accuracy)
+            test_metrics["Macro F1"].append(macro_f1)
+            test_metrics["Micro F1"].append(micro_f1)
             print(f'Accuracy: {accuracy:.4f}')
-            print(f'Precision: {precision:.4f}')
-            print(f'Recall: {recall:.4f}')
-            print(f'F1 Score: {f1:.4f}')
+            print(f'Macro F1: {macro_f1:.4f}')
+            print(f'Micro F1: {micro_f1:.4f}')
         if (epoch + 1) % save_epoch == 0:
             model.save_pretrained(f"{model_saving_dir}/{epoch + 1}")
             print(f"Model saved at epoch {epoch + 1}")
@@ -66,7 +65,6 @@ def save_training_logs(train_losses, test_metrics, log_dir):
     with open(f"{log_dir}/test_metrics.json", "w") as f:
         json.dump(test_metrics, f, indent=4)
 
-    # 绘制训练损失图
     plt.figure()
     plt.plot(range(1, len(train_losses) + 1), train_losses, label="Train Loss")
     plt.xlabel("Epoch")
@@ -76,16 +74,16 @@ def save_training_logs(train_losses, test_metrics, log_dir):
     plt.savefig(f"{log_dir}/train_loss.png")
     plt.close()
 
+    plt.figure()
     for metric, values in test_metrics.items():
-        plt.figure()
         plt.plot(range(1, len(values) + 1), values, label=metric.capitalize())
-        plt.xlabel("Epoch")
-        plt.ylabel(metric.capitalize())
-        plt.title(f"Test {metric.capitalize()}")
-        plt.legend()
-        plt.savefig(f"{log_dir}/test_{metric}.png")
-        plt.close()
-        
+    plt.xlabel("Epoch")
+    plt.ylabel("Metrics")
+    plt.title("Test Metrics")
+    plt.legend()
+    plt.savefig(f"{log_dir}/test_metrics.png")
+    plt.close()
+
 if __name__ == "__main__":
     import argparse
     import yaml
@@ -98,15 +96,15 @@ if __name__ == "__main__":
 
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
     model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=11)
-    with open(config["paths"]["extracted_token"], "r") as f:
-            new_tokens = json.load(f)
-    print(f"Adding {len(new_tokens)} new tokens to the tokenizer.")
-    tokenizer.add_tokens(new_tokens)
-    model.resize_token_embeddings(len(tokenizer))
+    if config["mode"] == "expanded":
+        with open(config["paths"]["extracted_token"], "r") as f:
+                new_tokens = json.load(f)
+        print(f"Adding {len(new_tokens)} new tokens to the tokenizer.")
+        tokenizer.add_tokens(new_tokens)
+        model.resize_token_embeddings(len(tokenizer))
     train_dataset = HoCDataset(config["paths"]["hoc_train_dataset"], tokenizer)
     test_dataset = HoCDataset(config["paths"]["hoc_test_dataset"], tokenizer)
-    # labels = [item['label'] for item in train_dataset.data]
-    # print(f"Labels range: min={min(labels)}, max={max(labels)}")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     train_classifier(config, model, train_dataset, test_dataset)

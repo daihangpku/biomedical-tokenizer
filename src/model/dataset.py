@@ -17,7 +17,7 @@ class HoCDataset(Dataset):
         item = self.data[idx]
         text = item['text']
         label = item['label']
-        encoding = self.tokenizer(text, truncation=True, padding='max_length', max_length=512, return_tensors='pt')
+        encoding = self.tokenizer(text, truncation=True, padding='max_length', max_length=128, return_tensors='pt', return_attention_mask=True)
         return {
             'input_ids': encoding['input_ids'].flatten(),
             'attention_mask': encoding['attention_mask'].flatten(),

@@ -1,4 +1,4 @@
-# Biomedical Tokenizer Project
+# Biomedical Tokenizer For FNLP 2025 Spring HW3
 
 This project aims to train a WordPiece tokenizer on a biomedical corpus and utilize it to enhance a BERT model for classification tasks. The project includes the following components:
 
@@ -21,7 +21,6 @@ This project aims to train a WordPiece tokenizer on a biomedical corpus and util
 
 - `README.md`: Documentation for the project, including setup instructions and usage.
 
-- `.gitignore`: Specifies files and directories to be ignored by version control.
 
 ## Setup Instructions
 
@@ -32,32 +31,34 @@ This project aims to train a WordPiece tokenizer on a biomedical corpus and util
    ```
 
 2. Install the required dependencies:
+   First get your torch ready!
+   then:
    ```
    pip install -r requirements.txt
    ```
 
 3. Prepare the datasets:
-
+   from course.pku.edu.cn
 ## Usage
 
 1. **Train the WordPiece Tokenizer**:
    Run the following command to train the tokenizer on the biomedical corpus:
    ```
-   python src/tokenizer/train_tokenizer.py --config src/config/config.yaml
+   python src/tokenizer/train_tokenizer.py --config src/config/expanded.yaml
    ```
 
 2. **Train the Classifier**:
+   Train the classifier using the original BERT model:
+   ```
+   python src/model/train_classifier.py --config src/config/ori.yaml
+   ```
    Train the classifier using the modified BERT model:
    ```
-   python src/model/train_classifier.py --config src/config/config.yaml
+   python src/model/train_classifier.py --config src/config/expanded.yaml
    ```
 
 3. **Evaluate the Classifier**:
-   Evaluate the performance of the trained classifier:
+   Evaluate the performance of the trained classifier: (modify your ckpt path in .yaml)
    ```
    python src/model/evaluate.py --config src/config/config.yaml
    ```
-
-## Overview
-
-The Biomedical Tokenizer Project aims to enhance the capabilities of BERT in the biomedical domain by training a specialized WordPiece tokenizer and adjusting the model to accommodate new tokens. This approach is expected to improve classification performance on biomedical datasets, making it a valuable tool for researchers and practitioners in the field.

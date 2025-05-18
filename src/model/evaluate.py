@@ -1,4 +1,4 @@
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, f1_score
 import torch
 from torch.utils.data import DataLoader
 from transformers import BertForSequenceClassification, BertTokenizer
@@ -14,8 +14,8 @@ def evaluate_model(model, dataset, config):
         for batch in dataloader:
             inputs = batch['input_ids'].to(model.device)
             labels = batch['labels'].to(model.device)
-
-            outputs = model(inputs)
+            attention_mask = batch['attention_mask'].to(model.device)
+            outputs = model(inputs, attention_mask=attention_mask, labels=labels)
             logits = outputs.logits
             preds = torch.argmax(logits, dim=1)
 
@@ -26,8 +26,9 @@ def evaluate_model(model, dataset, config):
 
 def calculate_metrics(preds, labels):
     accuracy = accuracy_score(labels, preds)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='weighted')
-    return accuracy, precision, recall, f1
+    macro_f1 = f1_score(labels, preds, average='macro')
+    micro_f1 = f1_score(labels, preds, average='micro')
+    return accuracy, macro_f1, micro_f1
     
 
 if __name__ == "__main__":
@@ -58,9 +59,8 @@ if __name__ == "__main__":
     print(f"Loaded model checkpoint from {checkpoint_path}")
     
     preds, labels = evaluate_model(model, test_dataset, device)
-    accuracy, precision, recall, f1 = calculate_metrics(preds, labels)
+    accuracy, macro_f1, micro_f1 = calculate_metrics(preds, labels)
 
     print(f'Accuracy: {accuracy:.4f}')
-    print(f'Precision: {precision:.4f}')
-    print(f'Recall: {recall:.4f}')
-    print(f'F1 Score: {f1:.4f}')
+    print(f'Macro F1: {macro_f1:.4f}')
+    print(f'Micro F1: {micro_f1:.4f}')

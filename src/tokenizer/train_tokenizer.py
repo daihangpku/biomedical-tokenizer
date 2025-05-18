@@ -36,8 +36,16 @@ def extract_domain_specific_tokens(config):
     bert_vocab = set(bert_tokenizer.vocab.keys())
 
     # Filter out tokens already in BERT's vocabulary
-    domain_specific_tokens = [token for token in trained_vocab if token not in bert_vocab]
+    print(f"Number of tokens in trained vocabulary: {len(trained_vocab)}")
+    print(f"Number of tokens in BERT vocabulary: {len(bert_vocab)}")
+    def is_subword_of_bert_vocab(token, bert_vocab):
+        return any(token in bert_word for bert_word in bert_vocab)
 
+    domain_specific_tokens = [
+        token for token in trained_vocab
+        if token not in bert_vocab and not is_subword_of_bert_vocab(token, bert_vocab)
+    ]
+    print(f"Number of domain-specific tokens: {len(domain_specific_tokens)}")
     # Sort tokens by frequency (if available) or alphabetically
     sorted_tokens = sorted(domain_specific_tokens, key=lambda token: trained_vocab[token])
 
